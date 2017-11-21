@@ -1,6 +1,6 @@
 # Smiley
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.4.9.
+A demo of real-time smile detection using the [deeplearn.js](https://deeplearnjs.org/) and the web [Shape Detection API](https://github.com/WICG/shape-detection-api).
 
 ## Development server
 
