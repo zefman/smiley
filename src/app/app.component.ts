@@ -23,6 +23,9 @@ export class AppComponent implements AfterViewInit {
 
   private faceDetector: any;
 
+  public smileyFaces: ImageData[] = [];
+  public otherFaces: ImageData[] = [];
+
   constructor( private zone: NgZone ) {}
 
   ngAfterViewInit() {
@@ -135,5 +138,14 @@ export class AppComponent implements AfterViewInit {
   normalize(val: number, max: number, min: number) {
     return (val - min) / (max - min);
   }
+
+  saveHappy() {
+    this.smileyFaces.push( this.faceCtx.getImageData(0, 0, 50, 50) );
+  }
+
+  saveOther() {
+    this.otherFaces.push( this.faceCtx.getImageData(0, 0, 50, 50) );
+  }
+
 
 }

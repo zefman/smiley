@@ -1,3 +1,17 @@
 <video class="video" autoplay #video></video>
 <canvas class="main-canvas" #canvas></canvas>
 <canvas height="50" width="50" class="face-canvas" #faceCanvas></canvas>
+
+<section class="training-faces">
+  <button (click)="saveHappy()">Save smiling</button>
+  <button (click)="saveOther()">Save other</button>
+
+  <div class="happy-faces">
+    <h1>Smiling Faces: {{ smileyFaces.length }}</h1>
+    <app-face-preview *ngFor="let face of smileyFaces; let i = index" [imageData]="face" (onClick)="removeHappy(i)"></app-face-preview>
+  </div>
+  <div class="other-faces">
+    <h1>Other Faces: {{ otherFaces.length }}</h1>
+    <app-face-preview *ngFor="let face of otherFaces; let i = index" [imageData]="face" (onClick)="removeOther(i)"></app-face-preview>
+  </div>
+</section>
