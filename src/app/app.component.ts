@@ -123,4 +123,17 @@ export class AppComponent implements AfterViewInit {
     this.faceCtx.putImageData(imageData, 0, 0);
   }
 
+  getNormalizedGreyScalePixels( imageData: ImageData ) {
+    const pixels = imageData.data;
+    const greyScalePixels = [];
+    for ( let i = 0, n = pixels.length; i < n; i += 4 ) {
+      greyScalePixels.push( this.normalize( pixels[i], 255, 0 ) );
+    }
+    return greyScalePixels;
+  }
+
+  normalize(val: number, max: number, min: number) {
+    return (val - min) / (max - min);
+  }
+
 }
