@@ -1,4 +1,8 @@
-canvas {
+.video {
+  display: none;
+}
+
+.main-canvas {
   min-height: 100%;
   min-width: 100%;
   transform: translate( -50%, -50% );
@@ -7,6 +11,8 @@ canvas {
   left: 50%;
 }
 
-video {
-  display: none;
+.face-canvas {
+  position: absolute;
+  top: 0px;
+  left: 0px;
 }
