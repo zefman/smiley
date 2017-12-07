@@ -1,4 +1,5 @@
 import { Component, AfterViewInit, ViewChild, ElementRef, NgZone } from '@angular/core';
+import { SmileModel } from './SmileModel';
 
 @Component({
   selector: 'app-root',

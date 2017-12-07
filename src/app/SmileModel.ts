@@ -53,7 +53,7 @@ export class SmileModel {
   /**
    * Constructs the graph of the model. Call this method before training.
    */
-  setupSession( happyFaces: number[][], otherFaces: number[][], weights: any ): void {
+  setupSession( happyFaces: number[][], otherFaces: number[][], weights?: any ): void {
     const graph = new Graph();
 
     // This tensor contains the input. In this case, it is a scalar.
