@@ -54,6 +54,10 @@ export class SmileModel {
    * Constructs the graph of the model. Call this method before training.
    */
   setupSession( happyFaces: number[][], otherFaces: number[][], weights?: any ): void {
+    console.log('Happy faces');
+    console.log(happyFaces);
+    console.log('other faces');
+    console.log(otherFaces);
     const graph = new Graph();
 
     // This tensor contains the input. In this case, it is a scalar.
@@ -84,6 +88,7 @@ export class SmileModel {
 
     // Create the session only after constructing the graph.
     this.session = new Session(graph, this.math);
+    console.log(this.session);
     const nodes = graph.getNodes();
     nodes.forEach( (n, index) => {
       this.nodeMap[ n.name ] = index;
@@ -174,14 +179,18 @@ export class SmileModel {
         new NDArrayInitializer(Array2D.new(wShape, layerWeights));
 
       biasInitializer = new NDArrayInitializer(Array1D.new(layerBias));
+
+      return graph.layers.dense(
+          'fully_connected_' + layerIndex, inputLayer, sizeOfThisLayer,
+          (x) => graph.relu(x), true, weightsInitializer, biasInitializer);
     } else {
-      weightsInitializer = new VarianceScalingInitializer();
-      biasInitializer = new ZerosInitializer();
+      console.log('Initialize randomly');
+
+      return graph.layers.dense(
+          'fully_connected_' + layerIndex, inputLayer, sizeOfThisLayer,
+          (x) => graph.relu(x), true);
     }
 
-    return graph.layers.dense(
-        'fully_connected_' + layerIndex, inputLayer, sizeOfThisLayer,
-        (x) => graph.relu(x), true, weightsInitializer, biasInitializer);
   }
 
   /**
@@ -192,12 +201,12 @@ export class SmileModel {
     this.math.scope(() => {
       const rawInputs = [...happyFaces, ...otherFaces];
       const rawTargets = [...happyFaces.map( f => 1 ), ...otherFaces.map( f => 0 )];
-
+      console.log(rawInputs);
       // Store the data within Array1Ds so that learnjs can use it.
       const inputArray: Array1D[] =
           rawInputs.map(c => Array1D.new( c ));
 
-      const targetArray: Array1D[] = rawTargets.map( business => Array1D.new( [ business ] ) );
+      const targetArray: Array1D[] = rawTargets.map( target => Array1D.new( [ target ] ) );
 
       // This provider will shuffle the training data (and will do so in a way
       // that does not separate the input-target relationship).

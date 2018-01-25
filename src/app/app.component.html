@@ -5,6 +5,12 @@
 <section class="training-faces">
   <button (click)="saveHappy()">Save smiling</button>
   <button (click)="saveOther()">Save other</button>
+  <button (click)="setUpSession()">Set up session</button>
+  <button *ngIf="!training" (click)="train()">Train</button>
+  <button *ngIf="training" (click)="stopTraining()">Stop training</button>
+  <button (click)="predict = true;">Predict</button>
+
+  <h1>Current cost: {{ cost }}</h1>
 
   <div class="happy-faces">
     <h1>Smiling Faces: {{ smileyFaces.length }}</h1>

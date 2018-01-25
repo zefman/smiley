@@ -1,5 +1,7 @@
 import { Component, AfterViewInit, ViewChild, ElementRef, NgZone } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { SmileModel } from './SmileModel';
+import { HappyModel } from './HappyModel';
 
 @Component({
   selector: 'app-root',
@@ -27,9 +29,20 @@ export class AppComponent implements AfterViewInit {
   public smileyFaces: ImageData[] = [];
   public otherFaces: ImageData[] = [];
 
-  constructor( private zone: NgZone ) {}
+  private smileModel = new SmileModel();
+  private step = 0;
+  public cost: number;
+  public training = false;
+  public predict = false;
+  private happyFace = new Image();
+  private sadFace = new Image();
+
+  constructor( private zone: NgZone, private http: HttpClient ) {}
 
   ngAfterViewInit() {
+    this.happyFace.src = '/assets/happy-emoji.svg';
+    this.sadFace.src = '/assets/sad-emoji.svg';
+
     // Get references to the video and canvas elements
     this.video = this.videoRef.nativeElement;
     this.canvas = this.canvasRef.nativeElement;
@@ -42,6 +55,24 @@ export class AppComponent implements AfterViewInit {
 
     // Start the webcam
     this.startVideo();
+
+    // this.smileyFaces = [];
+    // this.otherFaces = [];
+    // this.http.get( '/assets/happyFaces.json' )
+    //   .subscribe( (faces: any[]) => {
+    //     this.smileyFaces = faces.map( face => {
+    //       const imageData = new ImageData( Uint8ClampedArray.from( Object.keys( face.data ).map( k => face.data[ k ] ) ), 50, 50 );
+    //       return imageData;
+    //     } );
+    //   } );
+    //
+    // this.http.get( '/assets/otherFaces.json' )
+    //   .subscribe( (faces: any[]) => {
+    //     this.otherFaces = faces.map( face => {
+    //       const imageData = new ImageData( Uint8ClampedArray.from( Object.keys( face.data ).map( k => face.data[ k ] ) ), 50, 50 );
+    //       return imageData;
+    //     } );
+    //   } );
   }
 
   startVideo() {
@@ -125,13 +156,22 @@ export class AppComponent implements AfterViewInit {
       pixels[i + 2] = brightness;
     }
     this.faceCtx.putImageData(imageData, 0, 0);
+
+    if ( this.predict ) {
+      const prediction = this.smileModel.predict( this.getNormalizedGreyScalePixels( this.faceCtx.getImageData( 0, 0, 50, 50 ) ) )[0];
+      this.ctx.fillText( `${prediction}`, face.boundingBox.x + face.boundingBox.width / 2, face.boundingBox.y + face.boundingBox.height / 2);
+      console.log(prediction);
+       this.ctx.drawImage(this.happyFace, face.boundingBox.x, face.boundingBox.y, face.boundingBox.width, face.boundingBox.height);
+    }
   }
 
   getNormalizedGreyScalePixels( imageData: ImageData ) {
     const pixels = imageData.data;
     const greyScalePixels = [];
     for ( let i = 0, n = pixels.length; i < n; i += 4 ) {
-      greyScalePixels.push( this.normalize( pixels[i], 255, 0 ) );
+      // greyScalePixels.push( this.normalize( pixels[i], 255, 0 ) );
+      const grayscale = pixels[i] * .3 + pixels[i + 1] * .59 + pixels[i + 2] * .11;
+      greyScalePixels.push( this.normalize( grayscale, 255, 0 ) );
     }
     return greyScalePixels;
   }
@@ -141,12 +181,66 @@ export class AppComponent implements AfterViewInit {
   }
 
   saveHappy() {
+    // this.smileyFaces.push( this.faceCtx.getImageData(0, 0, 50, 50) );
     this.smileyFaces.push( this.faceCtx.getImageData(0, 0, 50, 50) );
+
   }
 
   saveOther() {
     this.otherFaces.push( this.faceCtx.getImageData(0, 0, 50, 50) );
   }
 
+  getGreyScalePixels( imageData: ImageData ) {
+    const pixels = imageData.data;
+    const greyScalePixels = [];
+    for ( let i = 0, n = pixels.length; i < n; i += 4 ) {
+      const grayscale = pixels[i] * .3 + pixels[i + 1] * .59 + pixels[i + 2] * .11;
+      greyScalePixels.push( this.normalize( grayscale, 255, 0 ) );
+    }
+    return greyScalePixels;
+  }
+
+  setUpSession() {
+    console.log( this.smileyFaces.map( data => this.getNormalizedGreyScalePixels( data ) ) )
+    console.log( this.otherFaces.map( data => this.getNormalizedGreyScalePixels( data ) ) )
+    this.smileModel.setupSession(
+      this.smileyFaces.map( data => this.getGreyScalePixels( data ) ),
+      this.otherFaces.map( data => this.getGreyScalePixels( data ) )
+    );
+  }
+
+  train() {
+    this.training = true;
+    this.trainAndMaybeRender();
+  }
+
+  stopTraining () {
+    this.training = false;
+  }
+
+  trainAndMaybeRender() {
+    if (this.step > 4200) {
+      // Stop training.
+      return;
+    }
+
+    // Schedule the next batch to be trained.
+    if ( this.training ) {
+      this.zone.runOutsideAngular(() => {
+      });
+      requestAnimationFrame(this.trainAndMaybeRender.bind( this ));
+    }
+
+    // We only fetch the cost every 10 steps because doing so requires a transfer
+    // of data from the GPU.
+    const localStepsToRun = 10;
+    for (let i = 0; i < localStepsToRun; i++) {
+      this.cost = this.smileModel.train1Batch(i === localStepsToRun - 1, this.step);
+      this.step++;
+    }
+
+    // Print data to console so the user can inspect.
+    console.log('step', this.step - 1, 'cost', this.cost);
+  }
 
 }
