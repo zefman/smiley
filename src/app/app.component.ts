@@ -49,7 +49,8 @@ export class AppComponent implements AfterViewInit {
       audio: false
     }, mediaStream => {
       // Successfully started a media stream, bind it to our video element
-      this.video.src = window.URL.createObjectURL( mediaStream );
+      // this.video.src = window.URL.createObjectURL( mediaStream );
+      this.video.srcObject = mediaStream
 
       // Once the video is loaded set our canvas element to match it's
       // width and height
